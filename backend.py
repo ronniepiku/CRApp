@@ -10,6 +10,7 @@ from sklearn import linear_model
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import precision_score, recall_score, f1_score
 
 from surprise import NMF
 from surprise import KNNBasic
@@ -508,7 +509,7 @@ def predict(model_name, user_ids, params):
     for user_id in user_ids:
 
         # Course Similarity predictions
-        if model_name == models[0]:
+        if model_name == models[0] or model_name == models[6] or model_name == models[7] or model_name == models[8]:
 
             sim_threshold = params["sim_threshold"] / 100.0
             ratings_df = load_ratings()
@@ -523,7 +524,6 @@ def predict(model_name, user_ids, params):
                     courses.append(key)
                     scores.append(score)
 
-        # User profile predictions
         elif model_name == models[1]:
 
             score_threshold = params["score_threshold"]
@@ -770,74 +770,6 @@ def predict(model_name, user_ids, params):
                 users.append(user_id)
                 courses.append(course_id)
                 scores.append(score)
-
-        # NN predictions
-        elif model_name == models[6]:
-
-            sim_threshold = params["sim_threshold"] / 100.0
-
-            model = joblib.load('models/NN_model.joblib')
-
-            ratings_df = load_ratings()
-            all_course_ids = ratings_df['item'].unique()
-            user_ratings = ratings_df[ratings_df['user'] == user_id]
-            print(user_ratings)
-            enrolled_course_ids = user_ratings['item'].to_list()
-            encoded_data, user_idx2id_dict, course_idx2id_dict = process_dataset(ratings_df)
-
-            user_id_to_index = {v: k for k, v in user_idx2id_dict.items()}
-            user_index = user_id_to_index.get(user_id, None)
-
-            other_courses = [
-                course_id for course_id in all_course_ids if course_id not in enrolled_course_ids
-            ]
-
-            # Create the testset with mapped user and item indices
-            testset = list(zip([user_index] * len(other_courses),
-                               course_idx2id_dict, [0] * len(other_courses)))
-
-            # Reshape the testset
-            testset = np.array(testset)
-            user_input = testset[:, 0]
-            item_input = testset[:, 1]
-
-            testset = np.vstack((user_input, item_input)).T
-            print(testset)
-
-            preds = model.predict(testset)
-            print(preds)
-            '''
-            user_list = user_ratings["user"].unique().tolist()
-            user_idx2id_dict = {i: x for i, x in enumerate(user_list)}
-
-            course_list = user_ratings["item"].unique().tolist()
-            course_idx2id_dict = {i: x for i, x in enumerate(course_list)}
-
-            # Encode the user_id and get the corresponding user index
-            user_idx = user_idx2id_dict.get(user_id, None)
-            print(user_idx)
-
-            if user_idx is not None:
-                # Create input data for predictions
-                user_indices = np.full(top_courses, user_idx, dtype=int)
-                item_indices = np.arange(top_courses)  # You can adapt this based on your requirements
-                input_data = np.column_stack((user_indices, item_indices))
-
-                # Make predictions
-                preds = model.predict(input_data)
-
-                # Loop through the predictions and filter by the sim_threshold
-                for item_idx, score in enumerate(preds):
-                    if score >= sim_threshold:
-                        users.append(user_id)
-                        # Decode the item index back to item_id
-                        item_id = course_idx2id_dict.get(item_idx, None)
-                        if item_id is not None:
-                            courses.append(item_id)
-                            scores.append(score)
-            else:
-                print(f"User with ID {user_id} not found in training data")
-            '''
         else:
             pass
 
@@ -845,7 +777,6 @@ def predict(model_name, user_ids, params):
     res_dict['COURSE_ID'] = courses
     res_dict['SCORE'] = scores
     res_df = pd.DataFrame(res_dict, columns=['USER', 'COURSE_ID', 'SCORE'])
-    print(res_df)
 
     # Get the top N courses based on the SCORE column
     top_courses_df = res_df.nlargest(top_courses, 'SCORE')

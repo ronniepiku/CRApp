@@ -9,9 +9,9 @@ from st_aggrid import GridUpdateMode, DataReturnMode
 
 # Basic webpage setup
 st.set_page_config(
-   page_title="Course Recommender System",
-   layout="wide",
-   initial_sidebar_state="expanded",
+    page_title="Course Recommender System",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 
@@ -39,7 +39,6 @@ def load_bow():
 
 # Initialize the app by first loading datasets
 def init__recommender_app():
-
     with st.spinner('Loading datasets...'):
         ratings_df = load_ratings()
         sim_df = load_course_sims()
@@ -77,7 +76,6 @@ def init__recommender_app():
 
 
 def train(model_name, params):
-
     if model_name in backend.models:
         # Start training course similarity model
         with st.spinner('Training...'):
@@ -87,7 +85,6 @@ def train(model_name, params):
 
 
 def predict(model_name, user_ids, params):
-
     if model_name in backend.models:
         # Start making predictions based on model name, test user ids, and parameters
         with st.spinner('Generating course recommendations: '):
@@ -221,11 +218,11 @@ elif model_selection == backend.models[6]:
                                    min_value=8, max_value=192,
                                    value=64, step=8)
 
-    epochs = st.sidebar.slider('epochs',
+    epochs = st.sidebar.slider('Epochs',
                                min_value=1, max_value=20,
                                value=10, step=1)
 
-    lr = st.sidebar.slider('learning rate',
+    lr = st.sidebar.slider('Learning rate',
                            min_value=1e-5, max_value=1.0,
                            value=1e-3, step=1e-3)
 
@@ -237,12 +234,53 @@ elif model_selection == backend.models[6]:
     params['epochs'] = epochs
 
 elif model_selection == backend.models[7]:
-    pass
+
+    top_courses = st.sidebar.slider('Top courses',
+                                    min_value=0, max_value=25,
+                                    value=10, step=1)
+
+    course_sim_threshold = st.sidebar.slider('Course Similarity Threshold %',
+                                             min_value=0, max_value=100,
+                                             value=50, step=5)
+
+    split = st.sidebar.slider('Split',
+                              min_value=0.0, max_value=1.0,
+                              value=0.2, step=0.05)
+
+    alpha = st.sidebar.slider('Alpha',
+                              min_value=0.0, max_value=2.0,
+                              value=0.1, step=0.1)
+
+    params['top_courses'] = top_courses
+    params['sim_threshold'] = course_sim_threshold
+    params['split'] = split
+    params['alpha'] = alpha
+
 elif model_selection == backend.models[8]:
-    pass
+
+    top_courses = st.sidebar.slider('Top courses',
+                                    min_value=0, max_value=25,
+                                    value=10, step=1)
+
+    course_sim_threshold = st.sidebar.slider('Course Similarity Threshold %',
+                                             min_value=0, max_value=100,
+                                             value=50, step=5)
+
+    split = st.sidebar.slider('Split',
+                              min_value=0.0, max_value=1.0,
+                              value=0.2, step=0.05)
+
+    max_depth = st.sidebar.slider('Max depth',
+                                  min_value=0, max_value=20,
+                                  value=8, step=1)
+
+    params['top_courses'] = top_courses
+    params['sim_threshold'] = course_sim_threshold
+    params['split'] = split
+    params['max_depth'] = max_depth
+
 else:
     pass
-
 
 # Training
 st.sidebar.subheader('3. Training: ')
@@ -251,7 +289,6 @@ training_text = st.sidebar.text('')
 # Start training process
 if training_button:
     train(model_selection, params)
-
 
 # Prediction
 st.sidebar.subheader('4. Prediction')
